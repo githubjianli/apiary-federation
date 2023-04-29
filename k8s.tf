@@ -13,7 +13,7 @@ locals {
   k8s_cpu_limit = (var.cpu / 1024) * 1.25
 }
 
-resource "kubernetes_service_account" "waggle_dance" {
+resource "kubernetes_service_account_v1" "waggle_dance" {
   count = var.wd_instance_type == "k8s" ? 1 : 0
   metadata {
     name        = local.instance_alias
@@ -25,7 +25,7 @@ resource "kubernetes_service_account" "waggle_dance" {
   automount_service_account_token = true
 }
 
-resource "kubernetes_deployment" "waggle_dance" {
+resource "kubernetes_deployment_v1" "waggle_dance" {
   count = var.wd_instance_type == "k8s" ? 1 : 0
   metadata {
     name      = local.instance_alias
@@ -56,7 +56,7 @@ resource "kubernetes_deployment" "waggle_dance" {
       }
 
       spec {
-        service_account_name            = kubernetes_service_account.waggle_dance[0].metadata.0.name
+        service_account_name            = kubernetes_service_account_v1.waggle_dance[0].metadata.0.name
         automount_service_account_token = true
         container {
           image = "${var.docker_image}:${var.docker_version}"
@@ -121,7 +121,7 @@ resource "kubernetes_deployment" "waggle_dance" {
   }
 }
 
-resource "kubernetes_horizontal_pod_autoscaler" "waggle_dance" {
+resource "kubernetes_horizontal_pod_autoscaler_v1" "waggle_dance" {
   count = var.wd_instance_type == "k8s" && var.enable_autoscaling ? 1 : 0
 
   metadata {
@@ -138,12 +138,12 @@ resource "kubernetes_horizontal_pod_autoscaler" "waggle_dance" {
     scale_target_ref {
       api_version = "apps/v1"
       kind        = "Deployment"
-      name        = kubernetes_deployment.waggle_dance[0].metadata[0].name
+      name        = kubernetes_deployment_v1.waggle_dance[0].metadata[0].name
     }
   }
 }
 
-resource "kubernetes_service" "waggle_dance" {
+resource "kubernetes_service_v1" "waggle_dance" {
   count = var.wd_instance_type == "k8s" ? 1 : 0
   metadata {
     name      = local.instance_alias
@@ -166,7 +166,7 @@ resource "kubernetes_service" "waggle_dance" {
   }
 }
 
-resource "kubernetes_service" "waggle_dance_internal" {
+resource "kubernetes_service_v1" "waggle_dance_internal" {
   count = var.wd_instance_type == "k8s" ? 1 : 0
   metadata {
     name      = "${local.instance_alias}-internal"
@@ -185,7 +185,7 @@ resource "kubernetes_service" "waggle_dance_internal" {
   }
 }
 
-resource "kubernetes_service" "waggle_dance_headless" {
+resource "kubernetes_service_v1" "waggle_dance_headless" {
   count = var.wd_instance_type == "k8s" ? 1 : 0
   metadata {
     name      = "${local.instance_alias}-headless"
